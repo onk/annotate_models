@@ -71,6 +71,8 @@ module AnnotateModels
   # Example: show "integer" instead of "integer(4)"
   NO_LIMIT_COL_TYPES = ["integer", "boolean"]
 
+  UNSIGNEDABLE_COL_TYPES = ["integer"]
+
   class << self
     def model_dir
       @model_dir.is_a?(Array) ? @model_dir : [@model_dir || "app/models"]
@@ -113,7 +115,7 @@ module AnnotateModels
       max_size = klass.column_names.map{|name| name.size}.max || 0
       max_size += options[:format_rdoc] ? 5 : 1
       md_names_overhead = 6
-      md_type_allowance = 18
+      md_type_allowance = 19
       bare_type_allowance = 16
 
       if(options[:format_markdown])
@@ -143,6 +145,10 @@ module AnnotateModels
               col_type << "(#{col.limit})" unless NO_LIMIT_COL_TYPES.include?(col_type)
             end
           end
+        end
+
+        if UNSIGNEDABLE_COL_TYPES.include?(col_type) && col.sql_type.include?("unsigned")
+          col_type << " unsigned"
         end
 
         # Check out if we got an array column
